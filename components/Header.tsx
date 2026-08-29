@@ -114,6 +114,11 @@ export default function Header() {
               Login
             </span>
           </a>
+          <a href={EXTERNAL.register} className="hidden sm:inline-flex">
+            <span className="inline-flex h-8 items-center rounded-md px-3 text-xs font-medium text-muted-foreground transition hover:-translate-y-px hover:bg-muted hover:text-foreground">
+              Register
+            </span>
+          </a>
           <a href={EXTERNAL.dashboard} className="hidden sm:inline-flex">
             <span className="inline-flex h-8 items-center rounded-md px-3 text-xs font-medium text-muted-foreground transition hover:-translate-y-px hover:bg-muted hover:text-foreground">
               Dashboard
@@ -160,6 +165,12 @@ export default function Header() {
               {item.label}
             </a>
           ))}
+          <a href={EXTERNAL.auth} onClick={() => setOpen(false)} className="block rounded-[6px] px-2 py-2 text-sm text-muted-foreground hover:text-foreground">
+            Login
+          </a>
+          <a href={EXTERNAL.register} onClick={() => setOpen(false)} className="block rounded-[6px] px-2 py-2 text-sm text-muted-foreground hover:text-foreground">
+            Register
+          </a>
         </div>
       )}
     </header>

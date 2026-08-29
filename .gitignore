@@ -11,4 +11,9 @@ npm-debug.log*
 *.tsbuildinfo
 next-env.d.ts
 .compare
+.neon
+.cursor
+*.tsbuildinfo
+next-env.d.ts
+.compare
 

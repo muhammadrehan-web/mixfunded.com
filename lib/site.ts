@@ -22,6 +22,7 @@ export const EXTERNAL = {
   instagram: "https://instagram.com/mixfunded",
   trustpilot: "https://www.trustpilot.com/review/mixfunded.com",
   auth: "/login",
+  register: "/register",
   dashboard: "/dashboard",
   help: "mailto:support@mixfunded.com",
 } as const;
