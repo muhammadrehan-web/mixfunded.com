@@ -21,6 +21,7 @@ export const EXTERNAL = {
   telegram: "https://t.me/addlist/uwPAUlfBU5owZmRi",
   instagram: "https://instagram.com/mixfunded",
   trustpilot: "https://www.trustpilot.com/review/mixfunded.com",
-  auth: "#programs",
+  auth: "/login",
+  dashboard: "/dashboard",
   help: "mailto:support@mixfunded.com",
 } as const;

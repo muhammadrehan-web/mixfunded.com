@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, IBM_Plex_Mono, Instrument_Sans } from "next/font/google";
+import ChatWidget from "@/components/ChatWidget";
 import "./globals.css";
 
 const bricolage = Bricolage_Grotesque({
@@ -48,6 +49,7 @@ export default function RootLayout({
       </head>
       <body className={`${bricolage.variable} ${instrument.variable} ${plex.variable} min-h-screen bg-background antialiased`}>
         {children}
+        <ChatWidget />
       </body>
     </html>
   );

@@ -236,13 +236,29 @@ body {
   opacity: 0.25;
 }
 
+@keyframes mfChatIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.mf-chat-window {
+  animation: 0.22s cubic-bezier(0.22, 1, 0.36, 1) both mfChatIn;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .mf-liquid,
   .mf-liquid-rings,
   .mf-liquid-sheen,
   .mf-hero-in,
   .animate-marquee,
-  .mf-cta-border {
+  .mf-cta-border,
+  .mf-chat-window {
     animation: none;
   }
   .mf-hero-in {

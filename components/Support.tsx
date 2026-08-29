@@ -1,4 +1,6 @@
-import { EXTERNAL, SITE } from "@/lib/site";
+"use client";
+
+import { EXTERNAL } from "@/lib/site";
 import { ArrowRight } from "./Logo";
 
 export default function Support() {
@@ -19,11 +21,11 @@ export default function Support() {
               We offer human support, available every hour, every trading session. Visit our dedicated Help Center for answers to common questions about challenges, payouts, scaling plans, and crypto platforms. Our live team is ready to support you.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <a href={`mailto:${SITE.email}`}>
+              <button type="button" onClick={() => window.dispatchEvent(new Event("mf-open-chat"))}>
                 <span className="inline-flex h-10 items-center rounded-md bg-[color:var(--accent)] px-6 py-6 text-sm font-semibold text-[color:var(--accent-foreground)] hover:brightness-110">
                   Contact Support <ArrowRight className="ml-1 h-4 w-4" />
                 </span>
-              </a>
+              </button>
               <a href={EXTERNAL.help}>
                 <span className="inline-flex h-10 items-center rounded-md border border-border bg-card px-6 py-6 text-sm font-semibold text-foreground hover:bg-muted">
                   Explore Knowledge Base

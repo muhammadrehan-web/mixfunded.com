@@ -114,6 +114,11 @@ export default function Header() {
               Login
             </span>
           </a>
+          <a href={EXTERNAL.dashboard} className="hidden sm:inline-flex">
+            <span className="inline-flex h-8 items-center rounded-md px-3 text-xs font-medium text-muted-foreground transition hover:-translate-y-px hover:bg-muted hover:text-foreground">
+              Dashboard
+            </span>
+          </a>
           <a href={EXTERNAL.programs} className="hidden sm:inline-flex">
             <span className="inline-flex h-8 items-center rounded-[6px] border border-[color:var(--accent)] bg-[color:var(--accent)] px-3 text-xs font-semibold text-[color:var(--accent-foreground)] shadow-none hover:brightness-110">
               Start Challenge <ArrowRight className="ml-1 h-3.5 w-3.5" />

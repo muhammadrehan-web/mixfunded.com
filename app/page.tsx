@@ -1,5 +1,4 @@
 import Challenges from "@/components/Challenges";
-import ChatWidget from "@/components/ChatWidget";
 import FinalCta, { Footer } from "@/components/FinalCta";
 import FourRules from "@/components/FourRules";
 import Header from "@/components/Header";
@@ -30,7 +29,6 @@ export default function Home() {
         <FinalCta />
       </main>
       <Footer />
-      <ChatWidget />
     </div>
   );
 }
