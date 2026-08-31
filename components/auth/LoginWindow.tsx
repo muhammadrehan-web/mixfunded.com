@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Logo from "@/components/Logo";
+import { ShowPasswordToggle } from "@/components/auth/ShowPasswordToggle";
 import { writeSession } from "@/lib/auth";
 import { safeNextPath } from "@/lib/safe-path";
 
@@ -15,6 +16,7 @@ export default function LoginWindow() {
   const next = safeNextPath(search.get("next"));
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -96,8 +98,15 @@ export default function LoginWindow() {
             </label>
             <label className="block text-xs text-muted-foreground">
               Password
-              <input name="password" type="password" className={`${field} mt-1`} autoComplete="current-password" required />
+              <input
+                name="password"
+                type={showPassword ? "text" : "password"}
+                className={`${field} mt-1`}
+                autoComplete="current-password"
+                required
+              />
             </label>
+            <ShowPasswordToggle checked={showPassword} onChange={setShowPassword} />
             <p className="text-right text-xs">
               <a href="/forgot-password" className="text-[color:var(--accent)]">
                 Forgot password?

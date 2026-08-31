@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Logo from "@/components/Logo";
+import { ShowPasswordToggle } from "@/components/auth/ShowPasswordToggle";
 
 const field =
   "h-11 w-full rounded-[6px] border border-border bg-background px-3 text-sm outline-none transition focus:border-[color:var(--accent)]/55";
@@ -13,6 +14,7 @@ export default function ResetPasswordWindow() {
   const token = search.get("token") || "";
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -82,12 +84,27 @@ export default function ResetPasswordWindow() {
           <form className="mt-6 space-y-3" onSubmit={onSubmit}>
             <label className="block text-xs text-muted-foreground">
               New password
-              <input name="password" type="password" className={`${field} mt-1`} autoComplete="new-password" minLength={6} required />
+              <input
+                name="password"
+                type={showPassword ? "text" : "password"}
+                className={`${field} mt-1`}
+                autoComplete="new-password"
+                minLength={6}
+                required
+              />
             </label>
             <label className="block text-xs text-muted-foreground">
               Confirm password
-              <input name="confirm" type="password" className={`${field} mt-1`} autoComplete="new-password" minLength={6} required />
+              <input
+                name="confirm"
+                type={showPassword ? "text" : "password"}
+                className={`${field} mt-1`}
+                autoComplete="new-password"
+                minLength={6}
+                required
+              />
             </label>
+            <ShowPasswordToggle checked={showPassword} onChange={setShowPassword} />
             {error && <p className="text-xs text-red-400">{error}</p>}
             <button
               type="submit"

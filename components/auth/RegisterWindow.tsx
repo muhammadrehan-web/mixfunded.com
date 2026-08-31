@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Logo from "@/components/Logo";
+import { ShowPasswordToggle } from "@/components/auth/ShowPasswordToggle";
 import { writeSession } from "@/lib/auth";
 import { safeNextPath } from "@/lib/safe-path";
 
@@ -15,6 +16,7 @@ export default function RegisterWindow() {
   const next = safeNextPath(search.get("next"));
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -125,13 +127,28 @@ export default function RegisterWindow() {
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="block text-xs text-muted-foreground">
                 Password
-                <input name="password" type="password" className={`${field} mt-1`} autoComplete="new-password" minLength={6} required />
+                <input
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  className={`${field} mt-1`}
+                  autoComplete="new-password"
+                  minLength={6}
+                  required
+                />
               </label>
               <label className="block text-xs text-muted-foreground">
                 Confirm password
-                <input name="confirm" type="password" className={`${field} mt-1`} autoComplete="new-password" minLength={6} required />
+                <input
+                  name="confirm"
+                  type={showPassword ? "text" : "password"}
+                  className={`${field} mt-1`}
+                  autoComplete="new-password"
+                  minLength={6}
+                  required
+                />
               </label>
             </div>
+            <ShowPasswordToggle checked={showPassword} onChange={setShowPassword} />
             <label className="flex items-start gap-2 pt-1 text-xs leading-5 text-muted-foreground">
               <input name="terms" type="checkbox" className="mt-0.5 accent-[color:var(--accent)]" required />
               <span>
