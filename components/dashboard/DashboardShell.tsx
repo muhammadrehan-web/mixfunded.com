@@ -9,6 +9,7 @@ import { TRADER } from "@/lib/dashboard";
 const nav = [
   { href: "/dashboard", label: "Overview", icon: OverviewIcon },
   { href: "/dashboard/accounts", label: "Accounts", icon: AccountsIcon },
+  { href: "/dashboard/orders", label: "Orders", icon: OrdersIcon },
   { href: "/dashboard/challenges", label: "New challenge", icon: ChallengeIcon },
   { href: "/dashboard/payouts", label: "Payouts", icon: PayoutIcon },
   { href: "/dashboard/certificates", label: "Certificates", icon: CertIcon },
@@ -143,6 +144,15 @@ function AccountsIcon() {
     <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
       <rect x="3" y="5" width="18" height="14" rx="2" />
       <path d="M3 10h18" />
+    </svg>
+  );
+}
+function OrdersIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M6 2h12l1 4H5z" />
+      <path d="M6 6h12v14H6z" />
+      <path d="M9 10h6M9 14h6" />
     </svg>
   );
 }

@@ -149,7 +149,7 @@ export default function Challenges() {
         </div>
 
         <div className="mt-10 text-center">
-          <a href={EXTERNAL.programs}>
+          <a href={EXTERNAL.checkout}>
             <span className="inline-flex h-10 items-center rounded-[6px] border border-[color:var(--accent)] bg-[color:var(--accent)] px-8 py-6 text-base font-semibold text-[color:var(--accent-foreground)] hover:brightness-110">
               Open the full configurator <ArrowRight className="ml-1 h-4 w-4" />
             </span>

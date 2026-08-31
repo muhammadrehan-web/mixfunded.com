@@ -1,15 +1,18 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Logo from "@/components/Logo";
 import { writeSession } from "@/lib/auth";
+import { safeNextPath } from "@/lib/safe-path";
 
 const field =
   "h-11 w-full rounded-[6px] border border-border bg-background px-3 text-sm outline-none transition focus:border-[color:var(--accent)]/55";
 
 export default function LoginWindow() {
   const router = useRouter();
+  const search = useSearchParams();
+  const next = safeNextPath(search.get("next"));
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
 
@@ -37,7 +40,7 @@ export default function LoginWindow() {
         return;
       }
       writeSession({ name: payload?.name || email, email: payload?.email || email });
-      router.push("/dashboard");
+      router.push(next);
     } catch {
       setError("Could not reach the MixFunded backend.");
     } finally {
@@ -107,7 +110,7 @@ export default function LoginWindow() {
 
           <p className="mt-5 text-sm text-muted-foreground">
             New here?{" "}
-            <a href="/register" className="text-[color:var(--accent)]">
+            <a href={next !== "/dashboard" ? `/register?next=${encodeURIComponent(next)}` : "/register"} className="text-[color:var(--accent)]">
               Create an account
             </a>
           </p>

@@ -18,6 +18,7 @@ export type ChallengeProgram = {
 };
 
 function plans(
+  programId: string,
   fees: string[],
   profitTarget = "10%",
 ): ChallengePlan[] {
@@ -31,7 +32,7 @@ function plans(
     dailyDrawdown: "5% (equity / balance)",
     maxDrawdown: "10%",
     split: "80 / 20",
-    href: `#programs`,
+    href: `/checkout?program=${programId}&size=${encodeURIComponent(size)}`,
   }));
 }
 
@@ -39,26 +40,36 @@ export const PROGRAMS: ChallengeProgram[] = [
   {
     id: "one",
     label: "1-Phase",
-    plans: plans(["45", "95", "175", "299", "598", "929"]),
+    plans: plans("one", ["45", "95", "175", "299", "598", "929"]),
   },
   {
     id: "two",
     label: "2-Phase",
-    plans: plans(["39", "79", "149", "249", "479", "799"], "8% / 5%"),
+    plans: plans("two", ["39", "79", "149", "249", "479", "799"], "8% / 5%"),
   },
   {
     id: "instant",
     label: "Instant Funding",
     goldBadge: "Premium",
-    plans: plans(["89", "189", "329", "549", "899", "1499"], "None"),
+    plans: plans("instant", ["89", "189", "329", "549", "899", "1499"], "None"),
   },
   {
     id: "papp",
     label: "Pay After Passing",
     goldBadge: "Popular",
-    plans: plans(["5", "5", "5", "5", "5", "5"]),
+    plans: plans("papp", ["5", "5", "5", "5", "5", "5"]),
   },
 ];
+
+export const PLATFORMS = ["MT5", "MT4"] as const;
+export type Platform = (typeof PLATFORMS)[number];
+
+export function findPlan(programId: string, size: string) {
+  const program = PROGRAMS.find((item) => item.id === programId);
+  const plan = program?.plans.find((item) => item.size === size);
+  if (!program || !plan) return null;
+  return { program, plan };
+}
 
 export const LEDGER = [
   { date: "24 Aug 2026", trader: "Omar ******", amount: "1,603.00", tx: "6d524c1d…a476eb" },

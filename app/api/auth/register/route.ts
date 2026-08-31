@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { hasDatabase, sql } from "@/lib/db";
+import { sendWelcomeEmail } from "@/lib/mail";
 import { hashPassword } from "@/lib/password";
+
+export const runtime = "nodejs";
 
 function isEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
@@ -46,5 +49,13 @@ export async function POST(request: Request) {
   `;
 
   const user = inserted[0];
-  return NextResponse.json({ name: user.name, email: user.email });
+  let emailSent = false;
+  try {
+    const mail = await sendWelcomeEmail({ name: String(user.name), email: String(user.email) });
+    emailSent = mail.sent;
+  } catch (error) {
+    console.error("Welcome email failed", error instanceof Error ? error.message : "unknown");
+  }
+
+  return NextResponse.json({ name: user.name, email: user.email, emailSent });
 }

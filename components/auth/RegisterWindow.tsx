@@ -1,15 +1,18 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Logo from "@/components/Logo";
 import { writeSession } from "@/lib/auth";
+import { safeNextPath } from "@/lib/safe-path";
 
 const field =
   "h-11 w-full rounded-[6px] border border-border bg-background px-3 text-sm outline-none transition focus:border-[color:var(--accent)]/55";
 
 export default function RegisterWindow() {
   const router = useRouter();
+  const search = useSearchParams();
+  const next = safeNextPath(search.get("next"));
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
 
@@ -53,7 +56,7 @@ export default function RegisterWindow() {
         return;
       }
       writeSession({ name: payload?.name || `${firstName} ${lastName}`.trim(), email: payload?.email || email });
-      router.push("/dashboard");
+      router.push(next);
     } catch {
       setError("Could not reach the MixFunded backend.");
     } finally {
@@ -100,7 +103,9 @@ export default function RegisterWindow() {
             </span>
           </a>
           <h1 className="mt-4 text-2xl font-semibold tracking-tight md:mt-0">Create your desk</h1>
-          <p className="mt-2 text-sm text-muted-foreground">Backend register — Neon saves this login.</p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Neon saves this login. A MixFunded welcome lands in your inbox from Gmail.
+          </p>
 
           <form className="mt-6 space-y-3" onSubmit={onSubmit}>
             <div className="grid gap-3 sm:grid-cols-2">
@@ -145,7 +150,7 @@ export default function RegisterWindow() {
 
           <p className="mt-5 text-sm text-muted-foreground">
             Already have a desk?{" "}
-            <a href="/login" className="text-[color:var(--accent)]">
+            <a href={next !== "/dashboard" ? `/login?next=${encodeURIComponent(next)}` : "/login"} className="text-[color:var(--accent)]">
               Log in
             </a>
           </p>

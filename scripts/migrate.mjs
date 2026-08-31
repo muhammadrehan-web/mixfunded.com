@@ -60,6 +60,22 @@ await sql`
   )
 `;
 
+await sql`
+  CREATE TABLE IF NOT EXISTS orders (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    email text NOT NULL,
+    program_id text NOT NULL,
+    program_label text NOT NULL,
+    account_size text NOT NULL,
+    fee_usdt numeric NOT NULL,
+    platform text NOT NULL DEFAULT 'MT5',
+    status text NOT NULL DEFAULT 'paid',
+    payment_method text NOT NULL DEFAULT 'demo_usdt',
+    created_at timestamptz NOT NULL DEFAULT now()
+  )
+`;
+
 const demoEmail = "trader@mixfunded.com";
 const existing = await sql`SELECT id FROM users WHERE email = ${demoEmail} LIMIT 1`;
 if (existing.length === 0) {

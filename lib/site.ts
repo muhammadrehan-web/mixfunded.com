@@ -23,6 +23,8 @@ export const EXTERNAL = {
   trustpilot: "https://www.trustpilot.com/review/mixfunded.com",
   auth: "/login",
   register: "/register",
+  checkout: "/checkout",
   dashboard: "/dashboard",
+  orders: "/dashboard/orders",
   help: "mailto:support@mixfunded.com",
 } as const;
