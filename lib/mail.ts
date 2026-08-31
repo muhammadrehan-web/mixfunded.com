@@ -272,3 +272,48 @@ export async function sendOrderEmail(input: {
 
   return { sent: true as const, skipped: false as const };
 }
+
+export async function sendPasswordResetEmail(input: { name: string; email: string; resetUrl: string }) {
+  if (!hasMailer()) {
+    console.warn("Gmail is not configured; skipped reset email.");
+    return { sent: false as const, skipped: true as const };
+  }
+
+  const firstName = input.name.split(/\s+/)[0] || "trader";
+  const origin = appOrigin();
+  const safeName = escapeHtml(firstName);
+  const login = `${origin}/login`;
+
+  await transporter().sendMail({
+    from: `"${SITE.name}" <${gmailUser()}>`,
+    replyTo: SITE.email,
+    to: input.email,
+    subject: `Reset your ${SITE.name} password`,
+    text: [
+      `Hi ${firstName},`,
+      "",
+      `Use this link to set a new MixFunded password. It expires in 1 hour.`,
+      input.resetUrl,
+      "",
+      `If you did not ask for this, ignore the mail and your password stays the same.`,
+      "",
+      `${SITE.legal}`,
+    ].join("\n"),
+    html: welcomeEmailHtml({ safeName, dashboard: input.resetUrl, login })
+      .replace(
+        `Welcome to Mix<span style="color:#3fb68b;">Funded</span>, ${safeName}.`,
+        `Reset your password, ${safeName}.`,
+      )
+      .replace(
+        `Your MixFunded desk is open — challenges, payouts, and Monday USDT.`,
+        `This MixFunded reset link expires in 1 hour.`,
+      )
+      .replace(
+        `Your account is stored and ready. Open the desk for challenges, payouts, and Monday USDT.`,
+        `Choose a new password from the button below. If you did not request this, ignore the mail.`,
+      )
+      .replace("Open dashboard", "Reset password"),
+  });
+
+  return { sent: true as const, skipped: false as const };
+}

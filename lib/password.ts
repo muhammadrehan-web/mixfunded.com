@@ -1,4 +1,4 @@
-import { randomBytes, scrypt, timingSafeEqual } from "crypto";
+import { createHash, randomBytes, scrypt, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 
 const scryptAsync = promisify(scrypt);
@@ -16,4 +16,12 @@ export async function verifyPassword(password: string, stored: string) {
   const prev = Buffer.from(hash, "hex");
   if (key.length !== prev.length) return false;
   return timingSafeEqual(key, prev);
+}
+
+export function newResetToken() {
+  return randomBytes(32).toString("hex");
+}
+
+export function hashToken(token: string) {
+  return createHash("sha256").update(token).digest("hex");
 }

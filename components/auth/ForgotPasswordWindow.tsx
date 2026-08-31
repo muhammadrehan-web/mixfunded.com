@@ -1,46 +1,40 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
 import Logo from "@/components/Logo";
-import { writeSession } from "@/lib/auth";
-import { safeNextPath } from "@/lib/safe-path";
 
 const field =
   "h-11 w-full rounded-[6px] border border-border bg-background px-3 text-sm outline-none transition focus:border-[color:var(--accent)]/55";
 
-export default function LoginWindow() {
-  const router = useRouter();
-  const search = useSearchParams();
-  const next = safeNextPath(search.get("next"));
+export default function ForgotPasswordWindow() {
   const [error, setError] = useState("");
+  const [done, setDone] = useState("");
   const [pending, setPending] = useState(false);
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const data = new FormData(e.currentTarget);
     const email = String(data.get("email") || "").trim();
-    const password = String(data.get("password") || "");
-    if (!email || !password) {
-      setError("Email and password are required.");
+    if (!email) {
+      setError("Email is required.");
       return;
     }
 
     setPending(true);
     setError("");
+    setDone("");
     try {
-      const res = await fetch("/api/auth/login", {
+      const res = await fetch("/api/auth/forgot", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email }),
       });
-      const payload = (await res.json().catch(() => null)) as { name?: string; email?: string; error?: string } | null;
+      const payload = (await res.json().catch(() => null)) as { message?: string; error?: string } | null;
       if (!res.ok) {
-        setError(payload?.error || "Could not log in.");
+        setError(payload?.error || "Could not send the reset mail.");
         return;
       }
-      writeSession({ name: payload?.name || email, email: payload?.email || email });
-      router.push(next);
+      setDone(payload?.message || "If that email has a MixFunded desk, a reset link is on the way.");
     } catch {
       setError("Could not reach the MixFunded backend.");
     } finally {
@@ -60,22 +54,11 @@ export default function LoginWindow() {
               Trader desk
             </p>
             <h2 className="mt-3 text-3xl font-semibold tracking-tight text-foreground">
-              Welcome back to MixFunded.
+              Reset your MixFunded password.
             </h2>
             <p className="mt-4 text-sm leading-6 text-muted-foreground">
-              Login checks Neon Postgres. Wrong password stays out. After this window you land on accounts, payouts, and Monday USDT.
+              We send a one-hour Gmail link. The token is hashed in Neon. Your old password stays until you finish the reset.
             </p>
-            <ul className="mt-8 space-y-3 text-sm text-muted-foreground">
-              <li className="flex gap-2">
-                <span className="text-[color:var(--accent)]">01</span> Email + hashed password
-              </li>
-              <li className="flex gap-2">
-                <span className="text-[color:var(--accent)]">02</span> Same desk as register
-              </li>
-              <li className="flex gap-2">
-                <span className="text-[color:var(--gold)]">03</span> Session opens the dashboard
-              </li>
-            </ul>
           </div>
         </aside>
 
@@ -86,37 +69,29 @@ export default function LoginWindow() {
               Mix<span className="text-[color:var(--accent)]">Funded</span>
             </span>
           </a>
-          <h1 className="mt-4 text-2xl font-semibold tracking-tight md:mt-0">Log in to your desk</h1>
-          <p className="mt-2 text-sm text-muted-foreground">Backend login — Neon verifies this account.</p>
+          <h1 className="mt-4 text-2xl font-semibold tracking-tight md:mt-0">Forgot password</h1>
+          <p className="mt-2 text-sm text-muted-foreground">Enter the email you registered with.</p>
 
           <form className="mt-6 space-y-3" onSubmit={onSubmit}>
             <label className="block text-xs text-muted-foreground">
               Email
               <input name="email" type="email" className={`${field} mt-1`} autoComplete="email" required />
             </label>
-            <label className="block text-xs text-muted-foreground">
-              Password
-              <input name="password" type="password" className={`${field} mt-1`} autoComplete="current-password" required />
-            </label>
-            <p className="text-right text-xs">
-              <a href="/forgot-password" className="text-[color:var(--accent)]">
-                Forgot password?
-              </a>
-            </p>
             {error && <p className="text-xs text-red-400">{error}</p>}
+            {done && <p className="text-xs text-[color:var(--accent)]">{done}</p>}
             <button
               type="submit"
               disabled={pending}
               className="inline-flex h-11 w-full items-center justify-center rounded-[6px] bg-[color:var(--accent)] text-sm font-semibold text-[color:var(--accent-foreground)] disabled:opacity-60"
             >
-              {pending ? "Checking…" : "Enter dashboard"}
+              {pending ? "Sending…" : "Send reset link"}
             </button>
           </form>
 
           <p className="mt-5 text-sm text-muted-foreground">
-            New here?{" "}
-            <a href={next !== "/dashboard" ? `/register?next=${encodeURIComponent(next)}` : "/register"} className="text-[color:var(--accent)]">
-              Create an account
+            Remembered it?{" "}
+            <a href="/login" className="text-[color:var(--accent)]">
+              Log in
             </a>
           </p>
         </div>

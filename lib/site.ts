@@ -26,5 +26,6 @@ export const EXTERNAL = {
   checkout: "/checkout",
   dashboard: "/dashboard",
   orders: "/dashboard/orders",
+  forgot: "/forgot-password",
   help: "mailto:support@mixfunded.com",
 } as const;
