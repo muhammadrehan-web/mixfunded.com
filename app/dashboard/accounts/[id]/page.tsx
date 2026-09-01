@@ -1,13 +1,25 @@
-import { notFound } from "next/navigation";
+"use client";
+
+import { useParams } from "next/navigation";
 import EquityChart from "@/components/dashboard/EquityChart";
 import StatCard from "@/components/dashboard/StatCard";
-import { ACCOUNTS, TRADES, accountProgress, money, pct } from "@/lib/dashboard";
+import { useApi } from "@/components/dashboard/useApi";
+import { accountProgress, money, pct, type Trade, type TradingAccount } from "@/lib/dashboard";
+import { equitySeriesFor } from "@/lib/desk";
 
-export default async function AccountDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const account = ACCOUNTS.find((a) => a.id === id);
-  if (!account) notFound();
-  const trades = TRADES.filter((t) => t.accountId === account.id);
+export default function AccountDetailPage() {
+  const params = useParams<{ id: string }>();
+  const id = String(params.id || "");
+  const { data, error, loading } = useApi<{ account: TradingAccount; trades: Trade[] }>(
+    id ? `/api/accounts/${id}` : "/api/accounts",
+  );
+
+  if (loading) return <p className="text-sm text-muted-foreground">Loading account…</p>;
+  if (error || !data?.account) {
+    return <p className="text-sm text-red-400">{error || "Account not found."}</p>;
+  }
+
+  const { account, trades } = data;
   const progress = accountProgress(account);
 
   return (
@@ -50,7 +62,7 @@ export default async function AccountDetailPage({ params }: { params: Promise<{ 
             <p className="mt-3 text-sm text-muted-foreground">Funded — no profit target. Payouts every Monday.</p>
           )}
           <div className="mt-6 h-40">
-            <EquityChart />
+            <EquityChart series={equitySeriesFor(account)} />
           </div>
         </section>
 
@@ -62,7 +74,7 @@ export default async function AccountDetailPage({ params }: { params: Promise<{ 
             <Row label="Login" value={account.login} mono />
             <Row label="Password" value={account.password} mono />
           </dl>
-          <p className="mt-4 text-xs text-muted-foreground">Demo credentials for this landing dashboard — not a live broker login.</p>
+          <p className="mt-4 text-xs text-muted-foreground">Demo credentials for this desk — not a live broker login.</p>
         </section>
       </div>
 
@@ -81,19 +93,27 @@ export default async function AccountDetailPage({ params }: { params: Promise<{ 
               </tr>
             </thead>
             <tbody>
-              {trades.map((t) => (
-                <tr key={t.id} className="border-t border-border">
-                  <td className="px-5 py-3 font-medium">{t.symbol}</td>
-                  <td className="px-5 py-3 uppercase text-muted-foreground">{t.side}</td>
-                  <td className="px-5 py-3 font-mono-nums">{t.lots.toFixed(2)}</td>
-                  <td className="px-5 py-3 text-muted-foreground">{t.open}</td>
-                  <td className="px-5 py-3 text-muted-foreground">{t.status}</td>
-                  <td className={`px-5 py-3 font-mono-nums ${t.pnl >= 0 ? "text-[color:var(--accent)]" : "text-red-400"}`}>
-                    {t.pnl >= 0 ? "+" : ""}
-                    {money(t.pnl)}
+              {trades.length === 0 ? (
+                <tr>
+                  <td className="px-5 py-8 text-muted-foreground" colSpan={6}>
+                    No trades yet. Live MT4/MT5 fills are not connected on this demo desk.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                trades.map((t) => (
+                  <tr key={t.id} className="border-t border-border">
+                    <td className="px-5 py-3 font-medium">{t.symbol}</td>
+                    <td className="px-5 py-3 uppercase text-muted-foreground">{t.side}</td>
+                    <td className="px-5 py-3 font-mono-nums">{t.lots.toFixed(2)}</td>
+                    <td className="px-5 py-3 text-muted-foreground">{t.open}</td>
+                    <td className="px-5 py-3 text-muted-foreground">{t.status}</td>
+                    <td className={`px-5 py-3 font-mono-nums ${t.pnl >= 0 ? "text-[color:var(--accent)]" : "text-red-400"}`}>
+                      {t.pnl >= 0 ? "+" : ""}
+                      {money(t.pnl)}
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

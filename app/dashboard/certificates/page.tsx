@@ -1,13 +1,24 @@
+"use client";
+
 import Logo from "@/components/Logo";
-import { CERTIFICATES } from "@/lib/dashboard";
+import { useApi } from "@/components/dashboard/useApi";
+
+type Certificate = { id: string; title: string; account: string; date: string };
 
 export default function CertificatesPage() {
+  const { data, error, loading } = useApi<{ certificates: Certificate[] }>("/api/certificates");
+
   return (
     <div className="mx-auto max-w-6xl">
       <h1 className="text-2xl font-semibold tracking-tight">Certificates</h1>
       <p className="mt-1 text-sm text-muted-foreground">Passed evaluations and payout confirmations for this login.</p>
+      {loading && <p className="mt-6 text-sm text-muted-foreground">Loading certificates…</p>}
+      {error && <p className="mt-6 text-sm text-red-400">{error}</p>}
+      {!loading && (data?.certificates.length ?? 0) === 0 && (
+        <p className="mt-6 text-sm text-muted-foreground">No certificates yet. They appear when an evaluation is passed or a payout is marked paid.</p>
+      )}
       <div className="mt-6 grid gap-4 md:grid-cols-2">
-        {CERTIFICATES.map((cert) => (
+        {data?.certificates.map((cert) => (
           <article key={cert.id} className="relative overflow-hidden rounded-[6px] border border-border bg-card p-6">
             <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-[color:var(--accent)]/10" />
             <Logo className="h-8 w-8" />

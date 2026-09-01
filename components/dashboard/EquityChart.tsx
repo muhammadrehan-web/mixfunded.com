@@ -1,19 +1,20 @@
 import { EQUITY_SERIES } from "@/lib/dashboard";
 
-export default function EquityChart({ className = "" }: { className?: string }) {
+export default function EquityChart({ className = "", series }: { className?: string; series?: number[] }) {
+  const data = series && series.length > 1 ? series : EQUITY_SERIES;
   const w = 560;
   const h = 180;
   const pad = 8;
-  const min = Math.min(...EQUITY_SERIES);
-  const max = Math.max(...EQUITY_SERIES);
+  const min = Math.min(...data);
+  const max = Math.max(...data);
   const span = max - min || 1;
-  const points = EQUITY_SERIES.map((v, i) => {
-    const x = pad + (i / (EQUITY_SERIES.length - 1)) * (w - pad * 2);
+  const points = data.map((v, i) => {
+    const x = pad + (i / (data.length - 1)) * (w - pad * 2);
     const y = h - pad - ((v - min) / span) * (h - pad * 2);
     return `${x},${y}`;
   }).join(" ");
-  const last = EQUITY_SERIES[EQUITY_SERIES.length - 1];
-  const first = EQUITY_SERIES[0];
+  const last = data[data.length - 1];
+  const first = data[0];
   const up = last >= first;
 
   return (

@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { hasDatabase, sql } from "@/lib/db";
 import { verifyPassword } from "@/lib/password";
+import { withSession } from "@/lib/session";
+
+export const runtime = "nodejs";
 
 function isEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
@@ -20,11 +23,27 @@ export async function POST(request: Request) {
   }
 
   const db = sql();
-  const rows = await db`SELECT id, name, email, password_hash FROM users WHERE email = ${email} LIMIT 1`;
+  const rows = await db`
+    SELECT id, name, email, password_hash, COALESCE(role, 'trader') AS role
+    FROM users
+    WHERE email = ${email}
+    LIMIT 1
+  `;
   const user = rows[0];
   if (!user || !(await verifyPassword(password, String(user.password_hash)))) {
     return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
   }
 
-  return NextResponse.json({ name: user.name, email: user.email });
+  const auth = {
+    id: String(user.id),
+    name: String(user.name),
+    email: String(user.email),
+    role: String(user.role || "trader"),
+  };
+
+  try {
+    return withSession(NextResponse.json({ name: auth.name, email: auth.email, role: auth.role }), auth);
+  } catch {
+    return NextResponse.json({ error: "Session is not configured. Set SESSION_SECRET." }, { status: 500 });
+  }
 }

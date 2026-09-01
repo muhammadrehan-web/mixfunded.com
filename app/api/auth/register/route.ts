@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { hasDatabase, sql } from "@/lib/db";
 import { sendWelcomeEmail } from "@/lib/mail";
 import { hashPassword } from "@/lib/password";
+import { withSession } from "@/lib/session";
 
 export const runtime = "nodejs";
 
@@ -45,7 +46,7 @@ export async function POST(request: Request) {
   const inserted = await db`
     INSERT INTO users (name, email, password_hash)
     VALUES (${name}, ${email}, ${passwordHash})
-    RETURNING name, email
+    RETURNING id, name, email, COALESCE(role, 'trader') AS role
   `;
 
   const user = inserted[0];
@@ -57,5 +58,16 @@ export async function POST(request: Request) {
     console.error("Welcome email failed", error instanceof Error ? error.message : "unknown");
   }
 
-  return NextResponse.json({ name: user.name, email: user.email, emailSent });
+  const auth = {
+    id: String(user.id),
+    name: String(user.name),
+    email: String(user.email),
+    role: String(user.role || "trader"),
+  };
+
+  try {
+    return withSession(NextResponse.json({ name: auth.name, email: auth.email, role: auth.role, emailSent }), auth);
+  } catch {
+    return NextResponse.json({ error: "Session is not configured. Set SESSION_SECRET." }, { status: 500 });
+  }
 }

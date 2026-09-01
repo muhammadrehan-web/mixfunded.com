@@ -2,7 +2,6 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { readSession } from "@/lib/auth";
 
 type OrderRow = {
   id: string;
@@ -30,9 +29,7 @@ function OrdersTable() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const session = readSession();
-    if (!session) return;
-    fetch(`/api/orders?email=${encodeURIComponent(session.email)}`)
+    fetch("/api/orders")
       .then(async (res) => {
         const payload = (await res.json().catch(() => null)) as { orders?: OrderRow[]; error?: string } | null;
         if (!res.ok) {

@@ -1,4 +1,5 @@
 import { neon } from "@neondatabase/serverless";
+import { NextResponse } from "next/server";
 
 export function hasDatabase() {
   return Boolean(process.env.DATABASE_URL);
@@ -10,4 +11,14 @@ export function sql() {
     throw new Error("DATABASE_URL is not set. Add it to .env.local from Neon.");
   }
   return neon(url);
+}
+
+export function requireDb() {
+  if (!hasDatabase()) {
+    return {
+      db: null,
+      error: NextResponse.json({ error: "Neon database is not configured." }, { status: 503 }),
+    };
+  }
+  return { db: sql(), error: null };
 }

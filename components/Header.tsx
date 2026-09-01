@@ -28,10 +28,14 @@ export default function Header() {
   const [open, setOpen] = useState(false);
   const [learnOpen, setLearnOpen] = useState(false);
   const [theme, setTheme] = useState<"dark" | "light">("dark");
+  const [signedIn, setSignedIn] = useState(false);
 
   useEffect(() => {
     const current = document.documentElement.classList.contains("light") ? "light" : "dark";
     setTheme(current);
+    fetch("/api/me")
+      .then((res) => setSignedIn(res.ok))
+      .catch(() => setSignedIn(false));
   }, []);
 
   function toggleTheme() {
@@ -109,16 +113,18 @@ export default function Header() {
               </svg>
             )}
           </button>
-          <a href={EXTERNAL.auth} className="hidden sm:inline-flex">
+          <a href={signedIn ? EXTERNAL.dashboard : EXTERNAL.auth} className="hidden sm:inline-flex">
             <span className="inline-flex h-8 items-center rounded-md px-3 text-xs font-medium text-foreground transition hover:-translate-y-px hover:bg-muted">
-              Login
+              {signedIn ? "Desk" : "Login"}
             </span>
           </a>
-          <a href={EXTERNAL.register} className="hidden sm:inline-flex">
-            <span className="inline-flex h-8 items-center rounded-md px-3 text-xs font-medium text-muted-foreground transition hover:-translate-y-px hover:bg-muted hover:text-foreground">
-              Register
-            </span>
-          </a>
+          {!signedIn && (
+            <a href={EXTERNAL.register} className="hidden sm:inline-flex">
+              <span className="inline-flex h-8 items-center rounded-md px-3 text-xs font-medium text-muted-foreground transition hover:-translate-y-px hover:bg-muted hover:text-foreground">
+                Register
+              </span>
+            </a>
+          )}
           <a href={EXTERNAL.dashboard} className="hidden sm:inline-flex">
             <span className="inline-flex h-8 items-center rounded-md px-3 text-xs font-medium text-muted-foreground transition hover:-translate-y-px hover:bg-muted hover:text-foreground">
               Dashboard

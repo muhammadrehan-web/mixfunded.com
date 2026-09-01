@@ -3,8 +3,9 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Logo from "@/components/Logo";
-import { clearSession, readSession } from "@/lib/auth";
-import { TRADER } from "@/lib/dashboard";
+import { apiJson } from "@/lib/api-client";
+import { clearSession } from "@/lib/auth";
+import { kycLabel, type DeskMe } from "@/lib/desk";
 
 const nav = [
   { href: "/dashboard", label: "Overview", icon: OverviewIcon },
@@ -22,25 +23,34 @@ export default function DashboardShell({ children }: { children: ReactNode }) {
   const router = useRouter();
   const [ready, setReady] = useState(false);
   const [open, setOpen] = useState(false);
-  const [name, setName] = useState(TRADER.name);
+  const [me, setMe] = useState<DeskMe | null>(null);
 
   useEffect(() => {
-    const session = readSession();
-    if (!session) {
-      router.replace("/login");
-      return;
-    }
-    setName(session.name);
-    setReady(true);
+    let cancelled = false;
+    apiJson<DeskMe>("/api/me").then((result) => {
+      if (cancelled) return;
+      if (!result.ok) {
+        clearSession();
+        router.replace("/login");
+        return;
+      }
+      setMe(result.data);
+      setReady(true);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [router]);
 
-  if (!ready) {
+  if (!ready || !me) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background text-sm text-muted-foreground">
         Loading trader desk…
       </div>
     );
   }
+
+  const items = me.role === "admin" ? [...nav, { href: "/admin", label: "Admin", icon: AdminIcon }] : nav;
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -53,7 +63,7 @@ export default function DashboardShell({ children }: { children: ReactNode }) {
             </span>
           </a>
           <nav className="flex flex-1 flex-col gap-1 p-3">
-            {nav.map((item) => {
+            {items.map((item) => {
               const active = item.href === "/dashboard" ? pathname === item.href : pathname.startsWith(item.href);
               return (
                 <a
@@ -72,7 +82,7 @@ export default function DashboardShell({ children }: { children: ReactNode }) {
             })}
           </nav>
           <div className="border-t border-border p-4 text-xs text-muted-foreground">
-            Next payout · Monday USDT
+            Next payout · {me.nextPayout}
           </div>
         </aside>
 
@@ -87,8 +97,10 @@ export default function DashboardShell({ children }: { children: ReactNode }) {
               ☰
             </button>
             <div className="min-w-0">
-              <p className="truncate text-sm font-semibold">{name}</p>
-              <p className="text-[11px] text-muted-foreground">KYC verified · trader desk</p>
+              <p className="truncate text-sm font-semibold">{me.name}</p>
+              <p className="text-[11px] text-muted-foreground">
+                {kycLabel(me.kyc_status)} · {me.role === "admin" ? "admin desk" : "trader desk"}
+              </p>
             </div>
             <div className="flex items-center gap-2">
               <a href="/" className="hidden rounded-[6px] border border-border px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground sm:inline-flex">
@@ -96,7 +108,8 @@ export default function DashboardShell({ children }: { children: ReactNode }) {
               </a>
               <button
                 type="button"
-                onClick={() => {
+                onClick={async () => {
+                  await fetch("/api/auth/logout", { method: "POST" });
                   clearSession();
                   router.replace("/login");
                 }}
@@ -109,7 +122,7 @@ export default function DashboardShell({ children }: { children: ReactNode }) {
 
           {open && (
             <div className="border-b border-border bg-card p-3 lg:hidden">
-              {nav.map((item) => (
+              {items.map((item) => (
                 <a
                   key={item.href}
                   href={item.href}
@@ -193,6 +206,13 @@ function SupportIcon() {
       <circle cx="12" cy="12" r="9" />
       <path d="M9.1 9a3 3 0 1 1 5.8 1c0 2-3 2-3 4" />
       <path d="M12 17h.01" />
+    </svg>
+  );
+}
+function AdminIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M12 3 4 7v5c0 5 3.5 8.5 8 9 4.5-.5 8-4 8-9V7z" />
     </svg>
   );
 }

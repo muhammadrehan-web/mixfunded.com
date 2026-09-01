@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Logo from "@/components/Logo";
+import { apiJson } from "@/lib/api-client";
 import { readSession, type Session } from "@/lib/auth";
 import { findPlan, PLATFORMS, PROGRAMS, type Platform } from "@/lib/data";
 
@@ -23,12 +24,18 @@ export default function CheckoutWindow() {
 
   useEffect(() => {
     const current = readSession();
-    if (!current) {
-      const next = `${window.location.pathname}${window.location.search}`;
-      router.replace(`/login?next=${encodeURIComponent(next)}`);
+    if (current) {
+      setSession(current);
       return;
     }
-    setSession(current);
+    apiJson<{ name: string; email: string }>("/api/me").then((result) => {
+      if (!result.ok) {
+        const next = `${window.location.pathname}${window.location.search}`;
+        router.replace(`/login?next=${encodeURIComponent(next)}`);
+        return;
+      }
+      setSession({ name: result.data.name, email: result.data.email });
+    });
   }, [router]);
 
   async function onPay(e: FormEvent) {
@@ -41,7 +48,6 @@ export default function CheckoutWindow() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          email: session.email,
           programId: matched.program.id,
           size: matched.plan.size,
           platform,
