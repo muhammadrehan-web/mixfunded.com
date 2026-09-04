@@ -19,9 +19,9 @@ export async function POST(request: Request) {
 
   const body = await request.json().catch(() => null);
   const incoming = Array.isArray(body?.messages) ? body.messages.filter(isTurn) : [];
-  const messages = incoming
-    .map((turn) => ({ role: turn.role, content: turn.content.trim().slice(0, 2000) }))
-    .filter((turn) => turn.content)
+  const messages: ChatTurn[] = incoming
+    .map((turn: ChatTurn) => ({ role: turn.role, content: turn.content.trim().slice(0, 2000) }))
+    .filter((turn: ChatTurn) => Boolean(turn.content))
     .slice(-12);
 
   if (messages.length === 0 || messages[messages.length - 1]?.role !== "user") {
