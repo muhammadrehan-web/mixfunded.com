@@ -6,13 +6,13 @@ import { SITE } from "@/lib/site";
 
 type Msg = { id: string; from: "desk" | "you"; text: string };
 
-const STORAGE = "mf-support-chat";
+const STORAGE = "mf-support-chat-v2";
 
 const STARTER: Msg[] = [
   {
     id: "m0",
     from: "desk",
-    text: "Hi — MixFunded desk here. Human support every session. Challenges, payouts, KYC, or the rulebook — ask away.",
+    text: "Hi — MixFunded desk here. Challenges, payouts, KYC, affiliates, or the rulebook — ask away. Account-specific issues can go to Dashboard → Support.",
   },
 ];
 
@@ -23,27 +23,15 @@ const QUICK = [
   { label: "KYC", prompt: "Do I need KYC?" },
 ];
 
-function replyFor(text: string) {
-  const q = text.toLowerCase();
-  if (q.includes("payout") || q.includes("withdraw") || q.includes("usdt") || q.includes("monday")) {
-    return "Payouts run every Monday in USDT (TRC-20). First payout after you are funded and KYC’d. Every paid row gets a TXID on the public ledger. Request from Dashboard → Payouts before Sunday 18:00 UTC.";
-  }
-  if (q.includes("kyc") || q.includes("verify") || q.includes("identity")) {
-    return "KYC is required before the first payout — not before you start a challenge. Upload ID from Dashboard → Profile & KYC. Most reviews clear the same day.";
-  }
-  if (q.includes("rule") || q.includes("drawdown") || q.includes("news") || q.includes("ea")) {
-    return "Four rules: 5% daily drawdown, 10% max overall, minimum 3 trading days per phase, and no latency/grid/HFT exploits. News trading, EAs, overnight and weekend holds are allowed. No consistency rule, no time limit.";
-  }
-  if (q.includes("challenge") || q.includes("phase") || q.includes("$5") || q.includes("papp") || q.includes("account") || q.includes("price")) {
-    return "Paths: 1-Phase, 2-Phase, Instant, or Pay After Passing from $5. Split 80/20. Start from the site Challenges section or Dashboard → New challenge. Passing typically funds within 24 hours.";
-  }
-  if (q.includes("login") || q.includes("password") || q.includes("mt5") || q.includes("mt4") || q.includes("platform")) {
-    return "After purchase, MT4/MT5 credentials sit on Dashboard → Accounts. Server is MixFunded-Live (or Demo on PAPP). Reset the password from Support if you are locked out.";
-  }
-  if (q.includes("human") || q.includes("email") || q.includes("vlad") || q.includes("founder")) {
-    return `You can email the desk at ${SITE.email}. Funded traders can also write Vladyslav directly: ${SITE.founderEmail}.`;
-  }
-  return `Got it. A desk agent will pick this up — usually under a minute during session hours. You can also email ${SITE.email} or open Dashboard → Support for a ticket.`;
+function historyFrom(messages: Msg[], extra: string) {
+  const turns = messages
+    .filter((m) => m.id !== "m0")
+    .map((m) => ({
+      role: m.from === "you" ? ("user" as const) : ("assistant" as const),
+      content: m.text,
+    }));
+  turns.push({ role: "user", content: extra });
+  return turns.slice(-12);
 }
 
 export default function ChatWidget() {
@@ -85,21 +73,38 @@ export default function ChatWidget() {
     return () => window.removeEventListener("mf-open-chat", openChat);
   }, []);
 
-  function pushDesk(text: string) {
-    setTyping(true);
-    window.setTimeout(() => {
-      setTyping(false);
-      setMessages((prev) => [...prev, { id: `d-${Date.now()}`, from: "desk", text }]);
-      if (!openRef.current) setUnread(true);
-    }, 650);
-  }
-
-  function send(text: string) {
+  async function send(text: string) {
     const trimmed = text.trim();
     if (!trimmed || typing) return;
+    const history = historyFrom(messages, trimmed);
     setMessages((prev) => [...prev, { id: `y-${Date.now()}`, from: "you", text: trimmed }]);
     setInput("");
-    pushDesk(replyFor(trimmed));
+    setTyping(true);
+    try {
+      const res = await fetch("/api/support/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: history }),
+      });
+      const payload = (await res.json().catch(() => null)) as { reply?: string; error?: string } | null;
+      const reply =
+        payload?.reply ||
+        payload?.error ||
+        "Desk is busy. Email support@mixfunded.com or open Dashboard → Support.";
+      setMessages((prev) => [...prev, { id: `d-${Date.now()}`, from: "desk", text: reply }]);
+      if (!openRef.current) setUnread(true);
+    } catch {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `d-${Date.now()}`,
+          from: "desk",
+          text: "Could not reach the desk. Email support@mixfunded.com or open Dashboard → Support.",
+        },
+      ]);
+    } finally {
+      setTyping(false);
+    }
   }
 
   function onSubmit(e: FormEvent) {
@@ -121,7 +126,7 @@ export default function ChatWidget() {
               <p className="text-sm font-semibold leading-none text-foreground">MixFunded Support</p>
               <p className="mt-1 flex items-center gap-1.5 text-[11px] text-muted-foreground">
                 <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--accent)]" />
-                Live desk · typically under 1 min
+                AI desk · Groq
               </p>
             </div>
             <button
@@ -156,7 +161,7 @@ export default function ChatWidget() {
             {typing && (
               <div className="flex justify-start">
                 <div className="rounded-[6px] border border-border bg-muted px-3 py-2 text-[13px] text-muted-foreground">
-                  Desk is typing…
+                Desk is typing…
                 </div>
               </div>
             )}

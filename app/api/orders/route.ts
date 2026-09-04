@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { hasDatabase, sql } from "@/lib/db";
 import { findPlan, PLATFORMS } from "@/lib/data";
+import { creditOrderCommission } from "@/lib/affiliate";
 import { sendOrderEmail } from "@/lib/mail";
 import { provisionAccount } from "@/lib/provision";
 import { requireUser } from "@/lib/session";
@@ -81,6 +82,12 @@ export async function POST(request: Request) {
     program: matched.program,
     plan: matched.plan,
     platform,
+  });
+  await creditOrderCommission(db, {
+    orderId: String(order.id),
+    buyerId: String(user.id),
+    fee,
+    request,
   });
 
   try {

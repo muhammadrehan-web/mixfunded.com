@@ -192,6 +192,37 @@ await sql`
   )
 `;
 
+await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS affiliate_code text`;
+await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS affiliate_rate numeric NOT NULL DEFAULT 0.10`;
+await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS referred_by uuid REFERENCES users(id) ON DELETE SET NULL`;
+await sql`CREATE UNIQUE INDEX IF NOT EXISTS users_affiliate_code_idx ON users (affiliate_code) WHERE affiliate_code IS NOT NULL`;
+
+await sql`
+  CREATE TABLE IF NOT EXISTS affiliate_clicks (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    affiliate_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    code text NOT NULL,
+    created_at timestamptz NOT NULL DEFAULT now()
+  )
+`;
+await sql`CREATE INDEX IF NOT EXISTS affiliate_clicks_affiliate_id_idx ON affiliate_clicks (affiliate_id)`;
+
+await sql`
+  CREATE TABLE IF NOT EXISTS affiliate_commissions (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    affiliate_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    referred_user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    order_id uuid NOT NULL UNIQUE REFERENCES orders(id) ON DELETE CASCADE,
+    fee_usdt numeric NOT NULL,
+    rate numeric NOT NULL,
+    amount numeric NOT NULL,
+    status text NOT NULL DEFAULT 'pending',
+    created_at timestamptz NOT NULL DEFAULT now(),
+    paid_at timestamptz
+  )
+`;
+await sql`CREATE INDEX IF NOT EXISTS affiliate_commissions_affiliate_id_idx ON affiliate_commissions (affiliate_id)`;
+
 const demoEmail = "trader@mixfunded.com";
 const existing = await sql`SELECT id FROM users WHERE email = ${demoEmail} LIMIT 1`;
 if (existing.length === 0) {
@@ -252,6 +283,27 @@ for (const order of unpaid) {
 
 if (unpaid.length > 0) {
   console.log(`Backfilled ${unpaid.length} trading account(s) from paid orders.`);
+}
+
+function affiliateCodeFor(name, id) {
+  const base = String(name || "trader")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "")
+    .slice(0, 12) || "trader";
+  return `${base}-${String(id).replace(/-/g, "").slice(0, 6)}`;
+}
+
+const mixCodeTaken = await sql`
+  SELECT id FROM users WHERE affiliate_code = 'mixfunded' AND email <> ${demoEmail} LIMIT 1
+`;
+if (mixCodeTaken.length === 0) {
+  await sql`UPDATE users SET affiliate_code = 'mixfunded' WHERE email = ${demoEmail}`;
+}
+
+const missingCodes = await sql`SELECT id, name FROM users WHERE affiliate_code IS NULL`;
+for (const user of missingCodes) {
+  const code = affiliateCodeFor(user.name, user.id);
+  await sql`UPDATE users SET affiliate_code = ${code} WHERE id = ${user.id}`;
 }
 
 console.log("Neon schema ready.");

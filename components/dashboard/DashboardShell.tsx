@@ -13,6 +13,7 @@ const nav = [
   { href: "/dashboard/orders", label: "Orders", icon: OrdersIcon },
   { href: "/dashboard/challenges", label: "New challenge", icon: ChallengeIcon },
   { href: "/dashboard/payouts", label: "Payouts", icon: PayoutIcon },
+  { href: "/dashboard/affiliate", label: "Affiliate", icon: AffiliateIcon },
   { href: "/dashboard/certificates", label: "Certificates", icon: CertIcon },
   { href: "/dashboard/profile", label: "Profile & KYC", icon: ProfileIcon },
   { href: "/dashboard/support", label: "Support", icon: SupportIcon },
@@ -206,6 +207,14 @@ function SupportIcon() {
       <circle cx="12" cy="12" r="9" />
       <path d="M9.1 9a3 3 0 1 1 5.8 1c0 2-3 2-3 4" />
       <path d="M12 17h.01" />
+    </svg>
+  );
+}
+function AffiliateIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M10 13a5 5 0 0 0 7.07 0l1.41-1.41a5 5 0 0 0-7.07-7.07L10 5.93" />
+      <path d="M14 11a5 5 0 0 0-7.07 0L5.52 12.41a5 5 0 0 0 7.07 7.07L14 18.07" />
     </svg>
   );
 }

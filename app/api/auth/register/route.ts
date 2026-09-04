@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { hasDatabase, sql } from "@/lib/db";
 import { sendWelcomeEmail } from "@/lib/mail";
 import { hashPassword } from "@/lib/password";
+import { bindReferrer, ensureAffiliateCode, refFromRequest } from "@/lib/affiliate";
 import { withSession } from "@/lib/session";
 
 export const runtime = "nodejs";
@@ -50,6 +51,8 @@ export async function POST(request: Request) {
   `;
 
   const user = inserted[0];
+  await ensureAffiliateCode(db, String(user.id), String(user.name));
+  await bindReferrer(db, String(user.id), refFromRequest(request));
   let emailSent = false;
   try {
     const mail = await sendWelcomeEmail({ name: String(user.name), email: String(user.email) });

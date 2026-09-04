@@ -12,6 +12,19 @@ type AdminUser = {
   kyc_status: string;
   wallet_trc20: string | null;
   country: string | null;
+  affiliate_code: string | null;
+};
+type AdminCommission = {
+  id: string;
+  affiliate_name: string;
+  affiliate_email: string;
+  affiliate_code: string;
+  trader_email: string;
+  program_label: string;
+  account_size: string;
+  amount: string | number;
+  rate: string | number;
+  status: string;
 };
 type AdminAccount = {
   id: string;
@@ -46,6 +59,7 @@ export default function AdminPage() {
     accounts: AdminAccount[];
     payouts: AdminPayout[];
     tickets: AdminTicket[];
+    commissions: AdminCommission[];
   }>("/api/admin/desk");
   const [notice, setNotice] = useState("");
 
@@ -75,7 +89,7 @@ export default function AdminPage() {
       <div>
         <p className="text-xs uppercase tracking-[0.18em] text-[color:var(--gold)]">Operations</p>
         <h1 className="mt-1 text-2xl font-semibold tracking-tight">Admin desk</h1>
-        <p className="mt-1 text-sm text-muted-foreground">KYC, pass/fail, payouts, and support — stored in Neon.</p>
+        <p className="mt-1 text-sm text-muted-foreground">KYC, pass/fail, payouts, affiliates, and support — stored in Neon.</p>
       </div>
       {notice && <p className="text-sm text-red-400">{notice}</p>}
 
@@ -98,6 +112,9 @@ export default function AdminPage() {
                   <td className="px-5 py-3">
                     <p className="font-medium">{user.name}</p>
                     <p className="text-xs text-muted-foreground">{user.email}</p>
+                    {user.affiliate_code && (
+                      <p className="font-mono-nums text-[11px] text-[color:var(--accent)]">/{user.affiliate_code}</p>
+                    )}
                   </td>
                   <td className="px-5 py-3 text-muted-foreground">{user.country || "—"}</td>
                   <td className="px-5 py-3 font-mono-nums text-xs">{user.wallet_trc20 || "—"}</td>
@@ -212,6 +229,63 @@ export default function AdminPage() {
                         </button>
                       )}
                       {payout.tx && <p className="mt-1 font-mono-nums text-[11px] text-[color:var(--accent)]">{payout.tx}</p>}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section className="rounded-[6px] border border-border bg-card">
+        <div className="border-b border-border px-5 py-3 text-sm font-semibold">Affiliate commissions</div>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[800px] text-left text-sm">
+            <thead className="text-[11px] uppercase tracking-wider text-muted-foreground">
+              <tr>
+                <th className="px-5 py-2 font-medium">Affiliate</th>
+                <th className="px-5 py-2 font-medium">Trader</th>
+                <th className="px-5 py-2 font-medium">Order</th>
+                <th className="px-5 py-2 font-medium">Cut</th>
+                <th className="px-5 py-2 font-medium">Status</th>
+                <th className="px-5 py-2 font-medium">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(data?.commissions.length ?? 0) === 0 ? (
+                <tr>
+                  <td className="px-5 py-8 text-muted-foreground" colSpan={6}>
+                    No affiliate commissions yet.
+                  </td>
+                </tr>
+              ) : (
+                data?.commissions.map((row) => (
+                  <tr key={row.id} className="border-t border-border">
+                    <td className="px-5 py-3">
+                      {row.affiliate_name}
+                      <span className="block text-xs text-muted-foreground">
+                        {row.affiliate_email} · {row.affiliate_code}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3 text-xs">{row.trader_email}</td>
+                    <td className="px-5 py-3">
+                      {row.program_label} · {row.account_size}
+                    </td>
+                    <td className="px-5 py-3 font-mono-nums">
+                      ${Number(row.amount)} · {Math.round(Number(row.rate) * 100)}%
+                    </td>
+                    <td className="px-5 py-3 capitalize">{row.status}</td>
+                    <td className="px-5 py-3">
+                      {row.status !== "paid" && (
+                        <button
+                          type="button"
+                          onClick={() => void patch("/api/admin/affiliates", { commissionId: row.id, status: "paid" })}
+                          className="rounded-[6px] border border-border px-2 py-1 text-[11px] hover:border-[color:var(--accent)]/50"
+                        >
+                          Mark paid
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))
